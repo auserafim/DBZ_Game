@@ -4,13 +4,16 @@ import pygame
 import random
 # Modulo da biblioteca PyGame que permite o acesso as teclas utilizadas
 from pygame.locals import *
+#Música 
+import pygame.mixer
+
+import pygame.sprite
 
 # Classe que representar o jogador
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         image_player = pygame.image.load("freeza-removebg-preview.png")
         scaled_image_player = pygame.transform.scale(image_player, (image_player.get_width() / 5, image_player.get_height() / 5))
-        
         super(Player, self).__init__()
         self.surf = scaled_image_player
         self.rect = self.surf.get_rect()
@@ -48,7 +51,7 @@ class Enemy(pygame.sprite.Sprite):
             center=(random.randint(820, 900), random.randint(0, 600))
             
         )
-        self.speed = random.uniform(1, 1) #Sorteia sua velocidade, entre 1 e 15
+        self.speed = random.uniform(1, 7) #Sorteia sua velocidade, entre 1 e 15
 
     # Funcao que atualiza a posiçao do inimigo em funcao da sua velocidade e termina com ele quando ele atinge o limite esquerdo da tela (x < 0)
     def update(self):
@@ -57,15 +60,34 @@ class Enemy(pygame.sprite.Sprite):
             self.kill()
 
 
-# Inicializa pygame
+# Vidas do Personagem
+def textoPontuação(vidas):
+    font = pygame.font.SysFont('tahoma', 30, "Bold", 'Italic')
+    texto = font.render("Vida: " + str(vidas), True, (239, 0, 255), (0, 0, 0))
+    textRect = texto.get_rect()
+    textRect.center = (650, 20)
+    screen.blit(texto, textRect)
+    pygame.display.update()
+
+
+
+
+
+# Inicializa o jogo por completo
 pygame.init()
+
+# Inicializa mixer de música 
+pygame.mixer.init()
+pygame.mixer.music.set_volume (0.5)
+pygame.mixer.music.load('musica-2.mp3')
+pygame.mixer.music.play(-1)  # O argumento -1 faz com que a música seja reproduzida em um loop infinito
 
 # Cria a tela com resolução 800x600px
 screen = pygame.display.set_mode((800, 600))
 
 # Cria um evento para adicao de inimigos
 ADDENEMY = pygame.USEREVENT + 1
-pygame.time.set_timer(ADDENEMY, 700) #Define um intervalo para a criacao de cada inimigo (milisegundos)
+pygame.time.set_timer(ADDENEMY, 500) #Define um intervalo para a criacao de cada inimigo (milisegundos)
 
 # Cria o jogador (nosso retangulo)
 player = Player()
@@ -75,23 +97,20 @@ x=800
 y=600
 screen = pygame.display.set_mode((x,y))
 pygame.display.set_caption("Torneio do poder")
-
 background = pygame.image.load ("background.jpeg")
 background = pygame.transform.scale(background, (x, y))
 
 
-
 #adicionar vida
-total_lives = 3
-remaining_lives = total_lives
+total_lifes = 3
+remaining_lifes = total_lifes
 font = pygame.font.Font(None, 38)  # Escolha a fonte e o tamanho desejados
-total_lives_text = font.render(f"LIVE: {total_lives}", True, (196, 0, 255))  # Renderiza o texto da pontuação
-
+total_lifes_text = font.render(f"LIFES: {total_lifes}", True, (196, 0, 255))  # Renderiza o texto da pontuação
 
 
 
 #criar tela de game over 
-
+game_over = False
 game_over_surface = pygame.Surface((800, 600))
 game_over_surface.fill((0, 0, 0))  # Preencha a superfície com uma cor de fundo (neste caso, preto)
 
@@ -104,6 +123,7 @@ game_over_rect = game_over_text.get_rect(center=(400, 300))
 enemies = pygame.sprite.Group() #Cria o grupo de inimigos
 all_sprites = pygame.sprite.Group() #Cria o grupo de todos os Sprites
 all_sprites.add(player) #Adicionar o player no grupo de todos os Sprites
+
 
 
 running = True #Flag para controle do jogo
@@ -122,49 +142,34 @@ while running:
             new_enemy = Enemy() #Cria um novo inimigo
             enemies.add(new_enemy) #Adiciona o inimigo no grupo de inimigos
             all_sprites.add(new_enemy) #Adiciona o inimigo no grupo de todos os Sprites
+
     rel_x = x % background.get_rect().width
     screen.blit(background, (0, 0)) #Atualiza a exibicao do plano de fundo do jogo (neste caso nao surte efeito)
     screen.blit(background, (rel_x - background.get_rect().width,0))#cria background
-
     if rel_x < 800:
          screen.blit(background, (rel_x, 0))
-
          x-=0.2
-    screen.blit(total_lives_text, (10, 10))  # Define a posição do texto na tela
+
+    screen.blit(total_lifes_text, (10, 10))  # Define a posição do texto na tela
     pressed_keys = pygame.key.get_pressed() #Captura as as teclas pressionadas
     player.update(pressed_keys) #Atualiza a posicao do player conforme teclas usadas
     enemies.update() #Atualiza posicao dos inimigos
-
 
     for entity in all_sprites:
         screen.blit(entity.surf, entity.rect) #Atualiza a exibicao de todos os Sprites
 
     if pygame.sprite.spritecollideany(player, enemies): #Verifica se ocorreu a colisao do player com um dos inimigos
-        player.kill() #Se ocorrer a colisao, encerra o player
-    if pygame.sprite.spritecollideany(player, enemies):
-    # A colisão ocorreu. Você pode tratar isso como preferir.
-    # Por exemplo, aumentar a pontuação e recriar o inimigo.
-        total_lives -= 1
-        total_lives_text = font.render(f"Live: {total_lives}", True, (196, 0, 255))
-
-    if remaining_lives <= 0:
-        game_over = True  # O jogador perdeu todas as vidas, definimos o estado de game over
-
-    
-    
-
-
-    #Mostrar a tela de game over quando o jogo terminar:
-    if pygame.sprite.spritecollideany(player, enemies):
-        # A colisão ocorreu.
-        # Encerrar o jogo e mostrar a tela de game over.
-        running = False
-        # Exibir a tela de game over
-
-        screen.blit(game_over_surface, (0, 0))
+        remaining_lifes -= 1
+        total_lifes_text = font.render(f"LIFES: {remaining_lifes}", True, (196, 0, 255))
+        collided_enemies = pygame.sprite.spritecollide(player, enemies, True)
+    if remaining_lifes == 0:
+        game_over = True # O jogador perdeu todas as vidas, definimos o estado de game over
+        screen.blit(game_over_surface, (0,0))
         screen.blit(game_over_text, game_over_rect)
+        running = False
 
-    
-    
-    
+
     pygame.display.flip() #Atualiza a projecao do jogo
+
+
+# def opening(): abertura do jogo, aperte qualquer
