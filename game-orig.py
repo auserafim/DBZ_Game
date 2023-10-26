@@ -61,13 +61,6 @@ class Enemy(pygame.sprite.Sprite):
 
 
 # Vidas do Personagem
-def textoPontuação(vidas):
-    font = pygame.font.SysFont('tahoma', 30, "Bold", 'Italic')
-    texto = font.render("Vida: " + str(vidas), True, (239, 0, 255), (0, 0, 0))
-    textRect = texto.get_rect()
-    textRect.center = (650, 20)
-    screen.blit(texto, textRect)
-    pygame.display.update()
 
 def menu_inicial():
     # Carregue a imagem de fundo do menu
@@ -96,9 +89,26 @@ def game_over():
     
     # Aumentar a dificuldade do jogo ao passar do tempo 
 def aumentar_dificuldade():
-    if pontuacao > 20:
+    if pontuacao > 50:
         for enemy in enemies:
-            enemy.speed = 150  
+            font = pygame.font.Font(None, 38)  # Escolha a fonte e o tamanho desejados
+            textos = font.render(f"Keep GOING:", True, (196, 0, 255))  
+            textRect = textos.get_rect()
+            textRect.center = (400, 300)
+            screen.blit(textos)
+            enemy.speed = 5
+    if pontuacao > 60:
+        for enemy in enemies:
+            enemy.speed = 10  
+    if pontuacao > 70:
+        for enemy in enemies:
+            enemy.speed = 15
+    if pontuacao > 80:
+        for enemy in enemies:
+            enemy.speed = 20  
+    if pontuacao > 100:
+        for enemy in enemies:
+            enemy.speed = 25 
 
 
 
@@ -237,18 +247,10 @@ while running:
                     pygame.quit()  # Encerre o jogo corretamente
 
     pygame.display.flip()  # Atualize a tela
-    aumentar_dificuldade()  
-
-    
-    
-
-
+    aumentar_dificuldade() 
 # Adicione uma nova flag para o loop de Game Over
 game_over_ativo = True
 game_over_running = True  
-
-
-
 #Loop para controlar a tela de game over
 while game_over_running:
     game_over()
@@ -266,7 +268,6 @@ while game_over_running:
                 game_over_running = False  # Finalize o loop de Game Over
     # Adicione o texto da pontuação à tela de Game Over
    
-
 
 
 
